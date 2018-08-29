@@ -53,17 +53,7 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <mainClass>com.zte.umeops.GbaseExporter</mainClass>
-                        </manifest>
-                    </archive>
-                </configuration>
-            </plugin>
+                 </plugin>
         </plugins>
     </build>
 </project>
