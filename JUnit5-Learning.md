@@ -1,4 +1,4 @@
-# why JUnit 5
+# Why JUnit 5
 
 对Java程序员而言，JUnit 4无疑是使用最广泛的单元测试框架。自2006年初JUnit 4发布之后，最新的4.12版本是在2014年12月发布的。终于在JUnit 4发布11年后，JUnit 5在2017年10月份正式发布了。
 
@@ -22,7 +22,7 @@ JUnit 5由三个子项目组成，分别是JUnit Platform、JUnit Jupiter和Juni
 
 - JUnit Platform是加载和启动测试框架的基础。此外它还定义了一个开发测试框架的TestEngine API,该API可用于开发在平台上运行的测试框架。
 - JUnit Jupiter由新的编程模型和扩展（Extension）模型组成，用于编写JUnit 5中的测试和扩展。
-- JUnit Vintage提供了运行JUnit 3和JUnit 4测试所用的TestEngine。
+- JUnit Vintage提供了运行JUnit 3和JUnit 4测试所用的TestEngine，为JUnit 5提供了后向兼容性。
 
 根据用户指南，在JUnit 5中引入了一种称为“Launcher”的概念。Launcher用于发现、过滤和执行测试。第三方软件库可以提供定制的TestEngine方式，以插件形式加入JUnit Platform的Launcher架构中。
 JUnit 5在运行时需要Java 8及以上版本。
@@ -99,4 +99,6 @@ JUnit Jupiter对`junit-platform-engine`测试引擎的实现，用于执行基�
 JUnit Vintage测试引擎实现，允许在新的JUnit Platform上运行低版本的JUnit测试，即那些以JUnit 3或JUnit 4风格编写的测试。
 
 # How to Use Junit 5
+
+## 使用JUnit Jupiter编写测试内容
 
