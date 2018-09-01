@@ -32,6 +32,7 @@ JUnit 5由三个子项目组成，分别是JUnit Platform、JUnit Jupiter和Juni
 - JUnit Vintage提供了运行JUnit 3和JUnit 4测试所用的TestEngine，为JUnit 5提供了后向兼容性。
 
 根据用户指南，在JUnit 5中引入了一种称为“Launcher”的概念。Launcher用于发现、过滤和执行测试。第三方软件库可以提供定制的TestEngine方式，以插件形式加入JUnit Platform的Launcher架构中。
+
 JUnit 5在运行时需要Java 8及以上版本。
 
 ## Artifacts简介
@@ -104,6 +105,12 @@ JUnit Jupiter对`junit-platform-engine`测试引擎的实现，用于执行基�
 #### `junit-vintage-engine`
 
 JUnit Vintage测试引擎实现，允许在新的JUnit Platform上运行低版本的JUnit测试，即那些以JUnit 3或JUnit 4风格编写的测试。
+
+### 小结
+
+综上所述，JUnit 5各部分关系可以用下图概括：
+
+![JUnit 5](JUnit5-arth.jpg)
 
 # How to Use Junit 5
 
