@@ -14,6 +14,13 @@ JUnit 5的主要目标之一，就是使JUnit更易于做进一步的提高和�
 
 此外，JUnit 5的另一个主要目标就是让JUnit 5尽可能的参入到编码客户端(构建工具和IDE)中，将发现和执行测试的内部构件和外部必需的所有过滤和配置分离开来。
 
+对于一般应用开发者，JUnit 5有以下优点：
+
+- JUnit 5中有一些列出色的新特性。
+- JUnit 5提供了全新的框架，应用开发人员和工具开发人员可以各取所需，并且互不影响。
+- JUnit 5提供了对旧版本的JUnit的兼容性，可以在运行JUnit 5测试的相同项目中运行旧版本JUnit的单元测试。
+- JUnit 5提供了丰富的测试框架选择，其总体改进目标是让JUnit成功地使用其他测试框架。
+
 # What is JUnit 5
 
 ## 概要
@@ -99,6 +106,8 @@ JUnit Jupiter对`junit-platform-engine`测试引擎的实现，用于执行基�
 JUnit Vintage测试引擎实现，允许在新的JUnit Platform上运行低版本的JUnit测试，即那些以JUnit 3或JUnit 4风格编写的测试。
 
 # How to Use Junit 5
+
+本节我们使用IDEA + Maven来演示如何使用JUnit 5编写单元测试。
 
 ## 使用JUnit Jupiter编写测试内容
 
