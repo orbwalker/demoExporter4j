@@ -1,7 +1,8 @@
 package io.sanwishe.prom.handle;
 
-import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.Gauge;
+import io.prometheus.client.exporter.common.TextFormat;
+import org.eclipse.jetty.http.HttpStatus;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,11 +15,10 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MetricsServletTest {
@@ -46,7 +46,15 @@ class MetricsServletTest {
         new MetricsServlet().doGet(req, resp);
 
         // then
-        assertTrue(writer.toString().contains("test_gauge 0.0"));
+//        assertTrue(writer.toString().contains("test_gauge 0.0"));
+//        assertTrue(resp.getStatus() == HttpStatus.OK_200, () -> "status must be ok");
+//        assertTrue(TextFormat.CONTENT_TYPE_004.equals(resp.getContentType()), () -> "response type must be prometheus text format: v0.0.4");
+
+        assertAll("check all result:",
+                () -> assertTrue(writer.toString().contains("test_gauge 0.0")),
+                () -> assertTrue(resp.getStatus() == HttpStatus.OK_200, () -> "status must be ok"),
+                () -> assertTrue(TextFormat.CONTENT_TYPE_004.equals(resp.getContentType()), () -> "response type must be prometheus text format: v0.0.4")
+        );
     }
 
 

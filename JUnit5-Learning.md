@@ -126,3 +126,147 @@ JUnit Vintage测试引擎实现，允许在新的JUnit Platform上运行低版�
 
 ## 使用JUnit Jupiter编写测试内容
 
+### 依赖配置
+
+JUnit 5中，和应用开发者便携测试代码息息相关的核心API都被封装`junit-jupiter-api`里。因此应用开发人员使用JUnit 5编写测试代码的核心依赖只有一个artifact：
+
+```xml
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-api</artifactId>
+    <version>${junit.jupiter.version}</version>
+    <scope>test</scope>
+</dependency>
+```
+
+Tips： 这里建议使用artifact：`junit-jupiter-engine`替代之，原因后续第二小节再详细解释。
+
+如果希望在代码中使用JUnit 5的参数化测试的新特性，需要在依赖中加入`junit-jupiter-params`
+
+```xml
+<dependency>
+    <groupId>org.junit.jupiter</groupId>
+    <artifactId>junit-jupiter-params</artifactId>
+    <version>${junit.jupiter.version}</version>
+    <scope>test</scope>
+</dependency>
+```
+
+### 核心注解
+
+JUnit 5继承了JUnit 4几乎全部注解，并且增加了大量新的注解。这里无法详细列出所有的注解，只是介绍一下常用注解。
+
+表1 JUnit Jupiter常用注解
+
+| Annotation | Target | Description |
+|:----------:|:-------:|:-------:|
+| @Test | Method | 表示被注解的方法是一个测试方法。与JUnit 4的`@Test`注解类似。 |
+| @DisplayName | Class/Method | 为测试类或测试方法声明一个自定义的显示名称。 |
+| @BeforeAll | Method | 表示使用了该注解的方法应该在当前类中所有测试方法之前执行，该方法必须为静态静态非private方法，而且返回值必须为void。它类似于JUnit 4的`@BeforeClass`。 |
+| @AfterAll | Method | 和`@BeforeAll`相反，表示在该类中所有测试方法执行完成后执行该方法。类似JUnit 4中的`@AfterClass` |
+| @BeforeEach | Method | 表示该方法需要在当前测试类每个测试方法执行前执行，类似JUnit 4中的`@Before` |
+| @AfterEach | Method | 表示该方法需要在当前测试类每个测试方法执行之后执行，类似JUnit 4中的`@After` |
+| @Disabled | Class/Method | 被注解的测试方法/类不会被执行，类似JUnit 4中的`@Ignore` |
+---
+
+表1列出的注解是一般应用开发者最常用的注解，一个使用上述注解的标准测试类如例1。
+
+例1:
+
+```java
+@DisplayName("Testing using JUnit 5")
+public class JUnit5AppTest {
+  
+  private App classUnderTest;
+  
+  @BeforeAll
+  public static void init() {
+    System.out.println("BeforeAll invoked.");
+  }
+  
+  @AfterAll
+  public static void done() {
+    System.out.println("AfterAll invoked.");
+  }
+  
+  @BeforeEach
+  public void setUp() throws Exception {
+    classUnderTest = new App();
+  }
+  
+  @AfterEach
+  public void tearDown() throws Exception {
+    classUnderTest = null;
+  }
+  
+  @Test
+  @DisplayName("Dummy test")
+  void aTest() {
+    assertEquals(4, (2 + 2));
+  }
+  
+  @Test
+  @Disabled
+  @DisplayName("A disabled test")
+  void testNotRun() {
+    log.info("This test will not run (it is disabled, silly).");
+  }
+}
+```
+
+Tips：
+
+- JUnit Jupiter不需要将测试方法声明为public。
+- 所有的测试方法的返回值都必须是`void`
+
+### 断言与假设
+
+`org.junit.jupiter.api.Assertions`上内置了很多静态断言方法，如`assertTrue()`，`assertEquals()`等。相比较于JUnit 4，JUnit Jupiter的断言改进之一在于其增加了对Java 8 Lambda的支持，可以在断言判断基础上传入一个`messageSupplier`，`messageSupplier`是一个`Supplier`的实例，用来为断言错误是提供一个错误消息，参考例2。
+
+例2:
+
+```java
+@Test
+@DisplayName("success branch")
+public void testDoGetSuccess() throws ServletException, IOException {
+    // given
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    when(req.getParameterValues(anyString())).thenReturn(new String[]{"test_gauge"});
+    HttpServletResponse resp = mock(HttpServletResponse.class);
+
+    StringWriter writer = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(writer);
+    when(resp.getWriter()).thenReturn(printWriter);
+
+    // when
+    new MetricsServlet().doGet(req, resp);
+
+    // then
+    assertTrue(writer.toString().contains("test_gauge 0.0"));
+    assertTrue(resp.getStatus() == HttpStatus.OK_200, () -> "status must be ok");
+    assertTrue(TextFormat.CONTENT_TYPE_004.equals(resp.getContentType()), () -> "response type must be prometheus text format: v0.0.4");
+}
+```
+
+日常开发过程中，经常遇到某些场景下，测试用例的断言会非常多，如某些复杂算法的测试代码需要检验返回结果中的多个字段值是否符合预期。JUnit 4时期，我们需要使用断言逐个判断结果满足预期，由于一般的断言函数的错误会导致测试允许终止，调试时需要重复运行测试以保证所有断言都通过。JUnit Jupiter进入了`assertAll()`来解决这个问题。`assertAll()`可以将多个断言包含在内，所有断言都会执行，即使一个或多个断言失败测试代码执行也不会终止。
+
+例2中三个断言，可以写在一起：
+
+例3:
+
+```java
+// ...
+assertAll("check all result:",
+        () -> assertTrue(writer.toString().contains("test_gauge 0.0")),
+        () -> assertTrue(resp.getStatus() == HttpStatus.OK_200, () -> "status must be ok"),
+        () -> assertTrue(TextFormat.CONTENT_TYPE_004.equals(resp.getContentType()), () -> "response type must be prometheus text format: v0.0.4")
+        );
+```
+
+例3执行结果(局部)：
+
+```
+org.opentest4j.MultipleFailuresError: check all result: (2 failures)
+	status must be ok ==> expected: <true> but was: <false>
+	response type must be prometheus text format: v0.0.4 ==> expected: <true> but was: <false>
+```
