@@ -163,48 +163,48 @@ JUnit 5继承了JUnit 4几乎全部注解，并且增加了大量新的注解。
 | @Test | Method | 表示被注解的方法是一个测试方法。与JUnit 4的`@Test`注解类似。 |
 | @DisplayName | Class/Method | 为测试类或测试方法声明一个自定义的显示名称。 |
 | @BeforeAll | Method | 表示使用了该注解的方法应该在当前类中所有测试方法之前执行，该方法必须为静态静态非private方法，而且返回值必须为void。它类似于JUnit 4的`@BeforeClass`。 |
-| @AfterAll | Method | 和`@BeforeAll`相反，表示在该类中所有测试方法执行完成后执行该方法。类似JUnit 4中的`@AfterClass` |
-| @BeforeEach | Method | 表示该方法需要在当前测试类每个测试方法执行前执行，类似JUnit 4中的`@Before` |
-| @AfterEach | Method | 表示该方法需要在当前测试类每个测试方法执行之后执行，类似JUnit 4中的`@After` |
-| @Disabled | Class/Method | 被注解的测试方法/类不会被执行，类似JUnit 4中的`@Ignore` |
+| @AfterAll | Method | 和`@BeforeAll`相反，表示在该类中所有测试方法执行完成后执行该方法。类似JUnit 4中的`@AfterClass` |
+| @BeforeEach | Method | 表示该方法需要在当前测试类每个测试方法执行前执行，类似JUnit 4中的`@Before` |
+| @AfterEach | Method | 表示该方法需要在当前测试类每个测试方法执行之后执行，类似JUnit 4中的`@After` |
+| @Disabled | Class/Method | 被注解的测试方法/类不会被执行，类似JUnit 4中的`@Ignore` |
 ---
 
-表1列出的注解是一般应用开发者最常用的注解，一个使用上述注解的标准测试类如例1。
+表1列出的注解是一般应用开发者最常用的注解，一个使用上述注解的标准测试类如例1。
 
 例1:
 
 ```java
 @DisplayName("Testing using JUnit 5")
 public class JUnit5AppTest {
-  
+
   private App classUnderTest;
-  
+
   @BeforeAll
   public static void init() {
     System.out.println("BeforeAll invoked.");
   }
-  
+
   @AfterAll
   public static void done() {
     System.out.println("AfterAll invoked.");
   }
-  
+
   @BeforeEach
   public void setUp() throws Exception {
     classUnderTest = new App();
   }
-  
+
   @AfterEach
   public void tearDown() throws Exception {
     classUnderTest = null;
   }
-  
+
   @Test
   @DisplayName("Dummy test")
   void aTest() {
     assertEquals(4, (2 + 2));
   }
-  
+
   @Test
   @Disabled
   @DisplayName("A disabled test")
@@ -217,11 +217,11 @@ public class JUnit5AppTest {
 Tips：
 
 - JUnit Jupiter不需要将测试方法声明为public。
-- 所有的测试方法的返回值都必须是`void`
+- 所有的测试方法的返回值都必须是`void`。
 
 ### 断言与假设
 
-`org.junit.jupiter.api.Assertions`上内置了很多静态断言方法，如`assertTrue()`，`assertEquals()`等。相比较于JUnit 4，JUnit Jupiter的断言改进之一在于其增加了对Java 8 Lambda的支持，可以在断言判断基础上传入一个`messageSupplier`，`messageSupplier`是一个`Supplier`的实例，用来为断言错误是提供一个错误消息，参考例2。
+`org.junit.jupiter.api.Assertions`上内置了很多静态断言方法，如`assertTrue()`，`assertEquals()`等。相比较于JUnit 4，JUnit Jupiter的断言改进之一在于其增加了对Java 8 Lambda的支持，可以在断言判断基础上传入一个`messageSupplier`，`messageSupplier`是一个`Supplier`的实例，用来为断言错误是提供一个错误消息，参考例2。
 
 例2:
 
@@ -248,7 +248,7 @@ public void testDoGetSuccess() throws ServletException, IOException {
 }
 ```
 
-日常开发过程中，经常遇到某些场景下，测试用例的断言会非常多，如某些复杂算法的测试代码需要检验返回结果中的多个字段值是否符合预期。JUnit 4时期，我们需要使用断言逐个判断结果满足预期，由于一般的断言函数的错误会导致测试允许终止，调试时需要重复运行测试以保证所有断言都通过。JUnit Jupiter进入了`assertAll()`来解决这个问题。`assertAll()`可以将多个断言包含在内，所有断言都会执行，即使一个或多个断言失败测试代码执行也不会终止。
+日常开发过程中，经常遇到某些场景下，测试用例的断言会非常多，如某些复杂算法的测试代码需要检验返回结果中的多个字段值是否符合预期。JUnit 4时期，我们需要使用断言逐个判断结果满足预期，由于一般的断言函数的错误会导致测试允许终止，调试时需要重复运行测试以保证所有断言都通过。JUnit Jupiter进入了`assertAll()`来解决这个问题。`assertAll()`可以将多个断言包含在内，所有断言都会执行，即使一个或多个断言失败测试代码执行也不会终止。
 
 例2中三个断言，可以写在一起：
 
@@ -263,10 +263,49 @@ assertAll("check all result:",
         );
 ```
 
-例3执行结果(局部)：
+例3执行结果(局部)：
 
 ```
 org.opentest4j.MultipleFailuresError: check all result: (2 failures)
 	status must be ok ==> expected: <true> but was: <false>
 	response type must be prometheus text format: v0.0.4 ==> expected: <true> but was: <false>
 ```
+
+虽然JUnit Jupiter提供的断言工具包已经满足了许多测试场景，但有时我们会遇到需要更加强大且具备例如匹配器 功能的场景。在这些场景中，JUnit团队推荐使用第三方断言类库，例如：AssertJ、Hamcrest、Truth 等等。因此，开发人员可以自由使用他们选择的断言类库。例如，匹配器 和流式调用的API组合起来使用可以让断言更加具有描述性和可读性。然而，JUnit Jupiter的`org.junit.jupiter.api.Assertions`类没有提供一个类似于JUnit 4的`org.junit.Assert`类中`assertThat()`方法，该方法接受一个`Hamcrest Matcher`。所以，我们鼓励开发人员使用由第三方断言库提供的匹配器的内置支持。
+
+假设与断言类似，但假设不成立时，测试跳过。JUnit Jupiter附带了JUnit 4中所提供的假设方法的一个子集，并增加了一些适合与Java 8 lambda一起使用的假设方法。
+
+例4：
+
+```java
+@ParameterizedTest
+@ValueSource(strings = {"/metrics", "/", ""})
+void doGet(String path) throws Exception {
+
+    assumeTrue(!path.isEmpty(), () -> "path must not be empty");
+
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    HttpServletResponse resp = mock(HttpServletResponse.class);
+    StringWriter writer = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(writer);
+    when(resp.getWriter()).thenReturn(printWriter);
+
+    new DefaultServlet(path).doGet(req, resp);
+
+//  assertTrue(resp.getStatus() == HttpStatus.OK_200, () -> "status must be ok");
+    assertTrue(!writer.toString().isEmpty(), () -> "response message should not be empty");
+}
+```
+
+在IDEA上执行例4，结果如图2。
+
+![图2 假设](assume.png)
+
+断言和假设在某些方面很相似，那么是使用断言还是假设呢？
+二者的区别可能很细微，所以可使用这条经验法则：使用断言检查一个测试方法的结果。使用假设确定是否运行测试方法。不会将已中止的测试报告为失败，意味着这种失败不会中断构建工作。
+
+### 参数化测试
+
+在某些场景下，我们需要保证合法的边界值通过测试，已验证极端情况，此时可以使用JUnit Jupiter的参数化测试。参数化测试可以用不同的参数多次运行试，它使用`@ParameterizedTest`注解，它们的声明跟@Test的方法没有区别，但是参数化测试还需要通过其它注解为测试方法注入参数集合。
+
+例4就是参数化测试的一个示例，示例中使用了`@ValueSource`来指定参数集合。
