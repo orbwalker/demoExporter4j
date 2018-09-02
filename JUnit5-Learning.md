@@ -326,3 +326,77 @@ tips：
 - 如果测试方法有多个参数，可以使用多为数组，或者是`Arguments`的集合
 
 
+例4使用其它方式的传入参数的用法如下：
+
+例5(使用`@MethodSource`，提供返回`Stream<String>`的静态工厂方法)
+
+```java
+private static Stream<String> paramProvider() {
+    return Stream.of("/metrics", "/", "");
+}
+
+@ParameterizedTest
+@MethodSource("paramProvider")
+void doGet(String path) throws Exception {
+
+    assumeTrue(!path.isEmpty(), () -> "path must not be empty");
+
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    HttpServletResponse resp = mock(HttpServletResponse.class);
+    StringWriter writer = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(writer);
+    when(resp.getWriter()).thenReturn(printWriter);
+
+    new DefaultServlet(path).doGet(req, resp);
+
+    assertTrue(!writer.toString().isEmpty(), () -> "response message should not be empty");
+}
+```
+
+例6(使用`@MethodSource`，提供返回数组的静态工厂方法)
+
+```java
+private static String[] paramProviderWithArray() {
+    return new String[]{"/metrics", "/"};
+}
+
+@ParameterizedTest
+@MethodSource("paramProviderWithArray")
+void doGet(String path) throws Exception {
+
+    assumeTrue(!path.isEmpty(), () -> "path must not be empty");
+
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    HttpServletResponse resp = mock(HttpServletResponse.class);
+    StringWriter writer = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(writer);
+    when(resp.getWriter()).thenReturn(printWriter);
+
+    new DefaultServlet(path).doGet(req, resp);
+
+    assertTrue(!writer.toString().isEmpty(), () -> "response message should not be empty");
+}
+```
+
+例7(使用`@CsvSource`提供参数)
+
+```java
+@ParameterizedTest
+@CsvSource({"/metrics", "/"})
+void doGet(String path) throws Exception {
+
+    assumeTrue(!path.isEmpty(), () -> "path must not be empty");
+
+    HttpServletRequest req = mock(HttpServletRequest.class);
+    HttpServletResponse resp = mock(HttpServletResponse.class);
+    StringWriter writer = new StringWriter();
+    PrintWriter printWriter = new PrintWriter(writer);
+    when(resp.getWriter()).thenReturn(printWriter);
+
+    new DefaultServlet(path).doGet(req, resp);
+
+    assertTrue(!writer.toString().isEmpty(), () -> "response message should not be empty");
+}
+```
+
+前面讲述了为测试方法提供一些简单类型的参数的方法。如果测试参数是自定义的Object类型，也可以使用JUnit Jupiter进行测试。
