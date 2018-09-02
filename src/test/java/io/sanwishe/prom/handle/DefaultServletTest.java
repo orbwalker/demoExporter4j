@@ -1,16 +1,17 @@
 package io.sanwishe.prom.handle;
 
-import org.eclipse.jetty.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.CsvFileSource;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.junit.jupiter.api.Assumptions.assumingThat;
@@ -19,8 +20,20 @@ import static org.mockito.Mockito.when;
 
 class DefaultServletTest {
 
+    private static Stream<String> paramProvider() {
+        return Stream.of("/metrics", "/", "");
+    }
+
+    private static String[] paramProviderWithArray() {
+        return new String[]{"/metrics", "/"};
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = {"/metrics", "/", ""})
+//    @ValueSource(strings = {"/metrics", "/", ""})
+//    @MethodSource("paramProvider")
+//    @MethodSource("paramProviderWithArray")
+    @CsvSource({"/metrics", "/"})
+//    @CsvFileSource(resources = "/param.csv")
     void doGet(String path) throws Exception {
 
         assumeTrue(!path.isEmpty(), () -> "path must not be empty");

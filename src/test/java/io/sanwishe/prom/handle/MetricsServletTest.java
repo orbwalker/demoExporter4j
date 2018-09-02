@@ -32,7 +32,7 @@ class MetricsServletTest {
 
     @Test
     @DisplayName("success branch")
-    public void testDoGetSuccess() throws ServletException, IOException {
+    void testDoGetSuccess() throws ServletException, IOException {
         // given
         HttpServletRequest req = mock(HttpServletRequest.class);
         when(req.getParameterValues(anyString())).thenReturn(new String[]{"test_gauge"});
@@ -60,7 +60,7 @@ class MetricsServletTest {
 
     @Test
     @DisplayName("wrong branch")
-    public void testCloseWriter() throws Exception {
+    void testCloseWriter() throws Exception {
         HttpServletRequest req = mock(HttpServletRequest.class);
         HttpServletResponse resp = mock(HttpServletResponse.class);
         PrintWriter writer = mock(PrintWriter.class);

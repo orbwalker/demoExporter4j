@@ -169,7 +169,7 @@ JUnit 5继承了JUnit 4几乎全部注解，并且增加了大量新的注解。
 | @Disabled | Class/Method | 被注解的测试方法/类不会被执行，类似JUnit 4中的`@Ignore` |
 ---
 
-表1列出的注解是一般应用开发者最常用的注解，一个使用上述注解的标准测试类如例1。
+表1列出的注解是一般应用开发者最常用的注解，一个使用上述注解的标准测试类如例1。
 
 例1:
 
@@ -221,7 +221,7 @@ Tips：
 
 ### 断言与假设
 
-`org.junit.jupiter.api.Assertions`上内置了很多静态断言方法，如`assertTrue()`，`assertEquals()`等。相比较于JUnit 4，JUnit Jupiter的断言改进之一在于其增加了对Java 8 lambda的支持，可以在断言判断基础上传入一个`messageSupplier`，`messageSupplier`是一个`Supplier`的实例，用来为断言错误是提供一个错误消息，参考例2。
+`org.junit.jupiter.api.Assertions`上内置了很多静态断言方法，如`assertTrue()`，`assertEquals()`等。相比较于JUnit 4，JUnit Jupiter的言改进之一在于其增加了对Java 8 Lambda的支持，可以在断言判断基础上传入一个`messageSupplier`，`messageSupplier`是一个`Supplier`的实例，用来为断言错误是提供一个错误消息，参考例2。
 
 例2:
 
@@ -306,6 +306,23 @@ void doGet(String path) throws Exception {
 
 ### 参数化测试
 
-在某些场景下，我们需要保证合法的边界值通过测试，已验证极端情况，此时可以使用JUnit Jupiter的参数化测试。参数化测试可以用不同的参数多次运行试，它使用`@ParameterizedTest`注解，它们的声明跟@Test的方法没有区别，但是参数化测试还需要通过其它注解为测试方法注入参数集合。
+在某些场景下，我们需要保证合法的边界值通过测试，已验证极端情况，此时可以使用JUnit Jupiter的参数化测试。参数化测试可以用不同的参数多次运行试，它使用`@ParameterizedTest`注解，它们的声明跟@Test的方法没有区别，但是参数化测试还需要通过其它注解为测试方法注入参数集合。此外，参数化测试需要额外依赖`junit-jupiter-params`.
 
-例4就是参数化测试的一个示例，示例中使用了`@ValueSource`来指定参数集合。
+例4就是参数化测试的一个示例，示例中使用了`@ValueSource`来指定参数集合。但是JUnit Jupiter为我们提供了丰富的注解来为测试方法提供参数。
+
+表2：
+
+| Annotation | Description |
+|:----:|:---:|
+| @ValueSource | 是最简单的来源之一。它允许你指定单个数组的文字值目前支持基本类型和String，Class。 |
+| @EnumSource | 通过为注解提供枚举类，让测试函数遍历枚举值。 |
+| @MethodSource | 通过静态工厂方法为测试提供测试参数，静态工厂方法的返回值必须为数组、Stream、Iterable或者Iterator。 |
+| @CsvSource | 它允许将参数列表定义为以逗号分隔的值。 |
+| @CsvFileSource | 和`@CsvSource`类似，以csv文件方式传入测试参数。 |
+
+tips：
+
+- csv不允许“”
+- 如果测试方法有多个参数，可以使用多为数组，或者是`Arguments`的集合
+
+
