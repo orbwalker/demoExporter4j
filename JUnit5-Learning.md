@@ -221,7 +221,7 @@ Tips：
 
 ### 断言与假设
 
-`org.junit.jupiter.api.Assertions`上内置了很多静态断言方法，如`assertTrue()`，`assertEquals()`等。相比较于JUnit 4，JUnit Jupiter的断言改进之一在于其增加了对Java 8 Lambda的支持，可以在断言判断基础上传入一个`messageSupplier`，`messageSupplier`是一个`Supplier`的实例，用来为断言错误是提供一个错误消息，参考例2。
+`org.junit.jupiter.api.Assertions`上内置了很多静态断言方法，如`assertTrue()`，`assertEquals()`等。相比较于JUnit 4，JUnit Jupiter的断言改进之一在于其增加了对Java 8 Lambda的支持，可以在断言判断基础上传入一个`messageSupplier`，`messageSupplier`是一个`Supplier`的实例，用来为断言错误是提供一个错误消息，参考例2。
 
 例2:
 
