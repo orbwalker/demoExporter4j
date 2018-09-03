@@ -139,8 +139,6 @@ JUnit 5中，和应用开发者便携测试代码息息相关的核心API都被�
 </dependency>
 ```
 
-Tips： 这里建议使用artifact：`junit-jupiter-engine`替代之，原因后续第二小节再详细解释。
-
 如果希望在代码中使用JUnit 5的参数化测试的新特性，需要在依赖中加入`junit-jupiter-params`
 
 ```xml
@@ -162,9 +160,9 @@ JUnit 5继承了JUnit 4几乎全部注解，并且增加了大量新的注解。
 |:----------:|:-------:|:-------:|
 | @Test | Method | 表示被注解的方法是一个测试方法。与JUnit 4的`@Test`注解类似。 |
 | @DisplayName | Class/Method | 为测试类或测试方法声明一个自定义的显示名称。 |
-| @BeforeAll | Method | 表示使用了该注解的方法应该在当前类中所有测试方法之前执行，该方法必须为静态静态非private方法，而且返回值必须为void。它类似于JUnit 4的`@BeforeClass`。 |
+| @BeforeAll | Method | 表示使用了该注解的方法应该在当前类中所有测试方法之前执行，该方法必须为静态静态非private方法，而且返回值必须为void。它类似于JUnit 4的`@BeforeClass` |
 | @AfterAll | Method | 和`@BeforeAll`相反，表示在该类中所有测试方法执行完成后执行该方法。类似JUnit 4中的`@AfterClass` |
-| @BeforeEach | Method | 表示该方法需要在当前测试类每个测试方法执行前执行，类似JUnit 4中的`@Before` |
+| @BeforeEach | Method | 表示该方法需要在当前测试类每个测试方法执行前执行，类似JUnit 4中的`@Before`。参数化测试和重复测试时，`@BeforeEach`方法的执行是以测试方法的执行为基准的，测试方法每执行一次，`@BeforeEach`方法随之执行一次 |
 | @AfterEach | Method | 表示该方法需要在当前测试类每个测试方法执行之后执行，类似JUnit 4中的`@After` |
 | @Disabled | Class/Method | 被注解的测试方法/类不会被执行，类似JUnit 4中的`@Ignore` |
 ---
@@ -306,7 +304,7 @@ void doGet(String path) throws Exception {
 
 ### 参数化测试
 
-在某些场景下，我们需要保证合法的边界值通过测试，已验证极端情况，此时可以使用JUnit Jupiter的参数化测试。参数化测试可以用不同的参数多次运行试，它使用`@ParameterizedTest`注解，它们的声明跟@Test的方法没有区别，但是参数化测试还需要通过其它注解为测试方法注入参数集合。此外，参数化测试需要额外依赖`junit-jupiter-params`.
+在某些场景下，我们需要保证合法的边界值通过测试，已验证极端情况，此时可以使用JUnit Jupiter的参数化测试。参数化测试可以用不同的参数多次运行试，它使用`@ParameterizedTest`注解，它们的声明跟@Test的方法没有区别，但是参数化测试还需要通过其它注解为测试方法注入参数集合。此外，参数化测试需要额外依赖`junit-jupiter-params`。
 
 例4就是参数化测试的一个示例，示例中使用了`@ValueSource`来指定参数集合。但是JUnit Jupiter为我们提供了丰富的注解来为测试方法提供参数。
 
@@ -399,6 +397,173 @@ void doGet(String path) throws Exception {
 }
 ```
 
-前面讲述了为测试方法提供一些简单类型的参数的方法。如果测试参数是自定义的Object类型，也可以使用JUnit Jupiter进行测试。
+前面讲述了为测试方法提供一些简单类型的参数的方法。此外JUnit Jupiter也支持将基本类型隐式地转换为如URL、文件、路径、时间等常用类型。
+如果测试参数是自定义的Object类型，也可以使用JUnit Jupiter进行测试。一种方法就是将构造复杂类型入参的数据通过简单类型传入(多个参数或者`ArgumentsAccessor`),然后构造复杂入参。
+更为方便的方法是将复杂类型作为入参，为其提供一个`@AggregateWith`注释。`@AggregateWith`需要指定一个`ArgumentsAggregator`的实现，用来将参数源提供的参数转换为复杂类型入参。
+也可以为测试方法的参数提供一个`@ConvertWith`注解来显式指定一个`ArgumentConverter`类型的转换器将给定的参数源转换为复杂类型的入参。
 
-to be continue
+### 动态测试
+
+目前为止，我们分析的都是静态测试，这意味着测试代码、测试数据和测试的通过/失败条件在编译时都是已知的。
+
+JUnit Jupiter 引入了一种称为动态测试的新测试类型，这种测试在运行时由一个使用了`@TestRactory`注解的测试工厂方法的特殊方法生成。
+
+`@TestFactory`方法本身不是测试用例，它是测试用例的工厂。
+
+将例4使用动态测试的方法重构后，代码如下。
+
+例8(使用动态测试重构的例4)
+
+```java
+@TestFactory
+Stream<DynamicTest> doGetTest() {
+    return Stream.of("/metrics", "/", "")
+            .map(path -> DynamicTest.dynamicTest("test" + path, () -> {
+                assumeTrue(!path.isEmpty(), () -> "input path must not be empty");
+
+                HttpServletRequest req = mock(HttpServletRequest.class);
+                HttpServletResponse resp = mock(HttpServletResponse.class);
+                StringWriter writer = new StringWriter();
+                PrintWriter printWriter = new PrintWriter(writer);
+                when(resp.getWriter()).thenReturn(printWriter);
+
+                new DefaultServlet(path).doGet(req, resp);
+
+                assertTrue(!writer.toString().isEmpty(), "response message should not be empty");
+            }));
+}
+```
+
+需要注意的是，在生命周期方面，动态测试和参数化测试等的区别在于：`@BeforeEach`和`@AfterEach`方法只会**在动态测试工厂返回的多个测试方法执行前执行一次**，但是在参数化测试每个参数注入测试方法执行前都会执行。
+
+## 使用 JUnit Platform 运行测试
+
+### 使用IDE工具运行JUnit Jupiter单元测试
+
+IDEA在2017.3及其之后的版本对JUnit 5有着非常好的集成度，不需要额外的配置就可以运行JUnit Jupiter编写的单元测试了。例如例8在IDEA中的运行效果如图3。
+
+![图3 使用IDEA运行JUnit Jupiter编写的单元测试](Junit_Jupiter_runs_on_IDEA.png)
+
+如果您使用的是比较旧的IDE，则可能需要在依赖中添加`junit-platform-launcher`和相关engine的依赖。
+
+### 使用maven运行JUnit Jupiter单元测试
+
+多数时候我们会在在`mvn test`命令中运行单元测试。在`mvn test`命令中运行JUnit Jupiter的单元测试，需要为`maven-sure-plugin`插件添加`junit-platform-surefire-provider`，它为`maven-surefire-plugin`提供JUnit单元测试的发现过滤等功能。为了运行单元测试，我们还需要为`maven-surefire-plugin`提供一个运行测试代码的engine，对于单纯的JUnit Jupiter单元测试，只`maven-surefire-plugin`上添加`junit-jupiter-engine`即可。
+
+一个使用maven 运行JUnit Jupiter单元测试的maven配置如下：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.sanwishe</groupId>
+    <artifactId>gbaseexporterexample</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>gbase_exporter</name>
+
+    <dependencies>
+        <!-- other dependencies -->
+        
+        <!-- core test framework -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.2.0</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <!-- for parameterized testing -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.2.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.21.0</version>
+                <dependencies>
+                    <!-- maven surefire provider -->
+                    <dependency>
+                        <groupId>org.junit.platform</groupId>
+                        <artifactId>junit-platform-surefire-provider</artifactId>
+                        <version>1.2.0</version>
+                    </dependency>
+                    <!-- for running junit jupiter test -->
+                    <dependency>
+                        <groupId>org.junit.jupiter</groupId>
+                        <artifactId>junit-jupiter-engine</artifactId>
+                        <version>5.2.0</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <!-- other plugin -->
+        </plugins>
+    </build>
+</project>
+```
+
+此时，运行`mvn test`命令执行测试的效果如下：
+
+```
+[INFO]
+[INFO] -------------------------------------------------------
+[INFO]  T E S T S
+[INFO] -------------------------------------------------------
+[INFO] Running io.sanwishe.prom.handle.DefaultServletTest
+before each.
+before each.
+before each.
+[WARNING] Tests run: 5, Failures: 0, Errors: 0, Skipped: 1, Time elapsed: 0.45 s - in io.sanwishe.prom.handle.DefaultServletTest
+[INFO] Running io.sanwishe.prom.handle.MetricsServletTest
+[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.084 s - in io.sanwishe.prom.handle.MetricsServletTest
+[INFO] Running io.sanwishe.prom.metrics.CollectorTest
+[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s - in io.sanwishe.prom.metrics.CollectorTest
+[INFO]
+[INFO] Results:
+[INFO]
+[WARNING] Tests run: 8, Failures: 0, Errors: 0, Skipped: 1
+```
+
+还有一种情况，我们在本地通过单元测试调试代码是依赖了第三方服务，这些测试代码正在CI流水线上不具备执行条件，我们希望在CI上不运行这类测试；也或者我们希望能够节约CI流水线构建时间，将一些执行速度很慢的测试排除掉，此时可以通过`@Tag`注解来实现这个功能。
+`maven-surefire-plugin`支持通过`@Tag`选择执行或者不执行哪些tag的单元测试。
+
+例如我们在代码中将某个测试通过注解`@Tag`标记为`slow`，在`maven-surefire-plugin`配置中中配置不执行有`slow`标签的测试即可将其排除在`mvn test`执行之列。
+
+```xml
+<plugin>
+    <artifactId>maven-surefire-plugin</artifactId>
+    <version>2.21.0</version>
+    <configuration>
+        <includes>
+            <include>**/Test*.java</include>
+            <include>**/*Test.java</include>
+            <include>**/*Tests.java</include>
+            <include>**/*TestCase.java</include>
+        </includes>
+        <properties>
+        <!-- <includeTags>fast</includeTags> -->
+            <excludeTags>slow</excludeTags>
+        </properties>
+    </configuration>
+    <dependencies>
+    <!-- some dependencies -->               
+    </dependencies>
+ </plugin>
+```
+
+tips：
+
+- 需要注意`maven-surefire-plugin`和`junit-platform-surefire-provider`之间版本的匹配关系，目前1.2.0版本的`junit-platform-surefire-provider`仅支持2.21.0的`maven-surefire-plugin`。
+- 如果代码中还有JUnit 4的单音测试，则还需要在`maven-surefire-plugin`中添加`junit-vintage-engine`的engine。
+
+# 结束语
+
+本文简要介绍了如何使用JUnit Jupiter编写单元测试，以及如何在运行这些JUnit Jupiter单音测试。JUnit 5进入了相当多的改动，本文仅仅从应用开发者的角度，着眼于如何使用JUnit Jupiter的假设、断言和参数化测试，以及如何在maven上运行基于JUnit Jupiter单元测试。更多细节请参考[JUnit 5官方文档](https://junit.org/junit5/docs/current/user-guide/)。
