@@ -76,11 +76,9 @@ JUnit 内部通用类库/实用工具，它们仅用于JUnit框架本身，不�
 
 #### `junit-platform-launcher`
 
-`junit-platform-launcher`是JUnit 5中用来发现， 过滤和执行测试，是JUnit 5参入到编码客户端即基础支持API。它提供了一套API给IDE和构建工具，使得它们能够与测试执行过程交互，比如运行单个的测试、搜集测试结果并展示等。
+`junit-platform-launcher`是JUnit 5中用来发现， 过滤和执行测试，是JUnit 5参入到编码客户端即基础支持API。它提供了一套API给IDE和构建工具，使得它们能够与测试执行过程交互，比如运行单个的测试、搜集测试结果并展示等。由于Junit 5发布时间比较短，一些IDE目前任然在JUnit 5缺乏支撑。比如在使用IDEA时，如果发现运行单元测试时IDEA报"无法解析junit-platform-launcher"的错误时，需要在pom中加入`junit-platform-launcher`依赖：
 
-由于Junit 5发布时间比较短，一些IDE目前任然在JUnit 5缺乏支撑。比如在使用IDEA时，如果发现运行单元测试时IDEA报"无法解析junit-platform-launcher"的错误时，需要在pom中加入`junit-platform-launcher`依赖：
-
-```xml
+```
 <dependency>
     <groupId>org.junit.platform</groupId>
     <artifactId>junit-platform-launcher</artifactId>
@@ -460,6 +458,8 @@ IDEA在2017.3及其之后的版本对JUnit 5有着非常好的集成度，不需
 ### 使用maven运行JUnit Jupiter单元测试
 
 多数时候我们会在在`mvn test`命令中运行单元测试。在`mvn test`命令中运行JUnit Jupiter的单元测试，需要为`maven-sure-plugin`插件添加`junit-platform-surefire-provider`，它为`maven-surefire-plugin`提供JUnit单元测试的发现过滤等功能。为了运行单元测试，我们还需要为`maven-surefire-plugin`提供一个运行测试代码的engine，对于单纯的JUnit Jupiter单元测试，只`maven-surefire-plugin`上添加`junit-jupiter-engine`即可。
+
+提示：在最新的`2.22.0`版本的`maven-surefire-plugin`插件运行Junit 5已经不需要添加provider依赖了。
 
 一个使用maven 运行JUnit Jupiter单元测试的maven配置如下：
 
