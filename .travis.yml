@@ -1,0 +1,12 @@
+language:java
+
+jdk:
+  - oraclejdk8
+
+script:
+  - mvn clean verify
+
+notifications:
+  email:
+    recipients:
+      - jiangmingzhi.23@163.com
